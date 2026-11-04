@@ -1,0 +1,23 @@
+name: Build Kivy APK
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - run: |
+          sudo apt update
+          sudo apt install -y git zip unzip openjdk-17-jdk autoconf automake libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev lld libltdl-dev
+          pip install Cython==0.29.33 buildozer
+      - run: |
+          yes | buildozer init
+          sed -i 's/#*requirements.*/requirements = python3,kivy/' buildozer.spec
+          sed -i 's/#*android.api.*/android.api = 33/' buildozer.spec
+          buildozer android debug
+      - uses: actions/upload-artifact@v4
+        with:
+          name: my-apk
+          path: bin/*.apk
